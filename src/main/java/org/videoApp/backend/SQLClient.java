@@ -28,6 +28,8 @@ public class SQLClient {
         TYPE.put("DECIMAL", BigDecimal.class);
         TYPE.put("NUMERIC", BigDecimal.class);
         TYPE.put("BOOLEAN", Boolean.class);
+        TYPE.put("BOOL", Boolean.class);
+        TYPE.put("BIT", Boolean.class);
         TYPE.put("CHAR", String.class);
         TYPE.put("VARCHAR", String.class);
         TYPE.put("LONGVARCHAR", String.class);
@@ -59,7 +61,7 @@ public class SQLClient {
             ResultSet rset = stmt.executeQuery(command);
             if (rset.next() == false) {
                 JSONObject json = new JSONObject();
-                json.put("error", "error");
+                json.put("error", "OBJECT_NOT_FOUND");
                 return json;
             }
             JSONObject json = getEntityFromResultSet(rset);
@@ -125,7 +127,7 @@ public class SQLClient {
     protected JSONObject getEntitiesFromResultSet(ResultSet resultSet) throws SQLException, JSONException {
         if (resultSet.next() == false) {
             JSONObject json = new JSONObject();
-            json.put("error", "error");
+            json.put("error", "OBJECT_NOT_FOUND");
             return json;
         }
         JSONArray entities = new JSONArray();
@@ -144,9 +146,7 @@ public class SQLClient {
         JSONObject json = new JSONObject();
         for (int i = 1; i <= columnCount; ++i) {
             Class castType = SQLClient.TYPE.get(metaData.getColumnTypeName(i).toUpperCase());
-            String columnName = metaData.getColumnName(i);
-            Object object = resultSet.getObject(i);
-            json.put(columnName, castType.cast(object));
+            json.put(metaData.getColumnName(i), resultSet.getObject(i, castType));
         }
         return json;
     }
